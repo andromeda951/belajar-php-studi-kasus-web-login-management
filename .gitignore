@@ -5,8 +5,8 @@ app/Exception/
 app/Service/
 app/Model/
 
-app/Repository/
-app/Domain/
-test/Repository/
+# app/Repository/
+# app/Domain/
+# test/Repository/
 
 #test/App/
