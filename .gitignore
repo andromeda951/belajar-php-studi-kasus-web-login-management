@@ -1,9 +1,9 @@
 #folder
 vendor/
 
-app/Exception/
-app/Service/
-app/Model/
+# app/Exception/
+# app/Service/
+# app/Model/
 
 # app/Repository/
 # app/Domain/
