@@ -7,6 +7,7 @@ use Andromeda\Belajar\PHP\MVC\Config\Database;
 use Andromeda\Belajar\PHP\MVC\Model\UserRegisterRequest;
 use Andromeda\Belajar\PHP\MVC\Service\UserService;
 use Andromeda\Belajar\PHP\MVC\Exception\ValidationException;
+use Andromeda\Belajar\PHP\MVC\Model\UserLoginRequest;
 use Andromeda\Belajar\PHP\MVC\Repository\UserRepository;
 
 class UserController{
@@ -41,6 +42,30 @@ class UserController{
         } catch (ValidationException $exception) {
             View::render("User/register", [
                 "title" => "Register new User",
+                "error" => $exception->getMessage()
+            ]);
+        }
+    }
+
+    public function login()
+    {
+        View::render("User/login", [
+            "title" => "User login"
+        ]);
+    }
+
+    public function postLogin()
+    {
+        $request = new UserLoginRequest();
+        $request->id = $_POST['id'];
+        $request->password = $_POST['password'];
+        
+        try {
+            $this->userService->login($request);
+            View::redirect('/');
+        } catch (ValidationException $exception) {
+            View::render("User/login", [
+                "title" => "Login user",
                 "error" => $exception->getMessage()
             ]);
         }
