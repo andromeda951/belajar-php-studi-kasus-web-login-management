@@ -7,11 +7,20 @@ namespace Andromeda\Belajar\PHP\MVC\App{
     }
 }
 
+namespace Andromeda\Belajar\PHP\MVC\Service{
+
+    function setcookie(string $name, string $value): void {
+        echo "$name: $value";
+    }
+}
+
 namespace Andromeda\Belajar\PHP\MVC\Controller{
 
     use Andromeda\Belajar\PHP\MVC\Config\Database;
+    use Andromeda\Belajar\PHP\MVC\Domain\Session;
     use Andromeda\Belajar\PHP\MVC\Domain\User;
     use Andromeda\Belajar\PHP\MVC\Exception\ValidationException;
+    use Andromeda\Belajar\PHP\MVC\Repository\SessionRepository;
     use Andromeda\Belajar\PHP\MVC\Repository\UserRepository;
     use PHPUnit\Framework\TestCase;
 
@@ -19,10 +28,14 @@ namespace Andromeda\Belajar\PHP\MVC\Controller{
 
         public UserController $userController;
         public UserRepository $userRepository;
+        public SessionRepository $sessionRepository;
 
         public function setUp(): void
         {
             $this->userController = new UserController();
+
+            $this->sessionRepository = new SessionRepository(Database::getConnection());
+            $this->sessionRepository->deleteAll();
 
             $this->userRepository = new UserRepository(Database::getConnection());
             $this->userRepository->deleteAll();
@@ -117,6 +130,7 @@ namespace Andromeda\Belajar\PHP\MVC\Controller{
 
             $this->userController->postLogin();
             $this->expectOutputRegex("[Location: /]");
+            $this->expectOutputRegex("[X-PZN-SESSION: ]");
         }
 
         public function testLoginValidationError()
@@ -164,8 +178,6 @@ namespace Andromeda\Belajar\PHP\MVC\Controller{
             $this->expectOutputRegex("[Password]");
             $this->expectOutputRegex("[Id or password is wrong]");
         }
-
-
     }
 }
 
