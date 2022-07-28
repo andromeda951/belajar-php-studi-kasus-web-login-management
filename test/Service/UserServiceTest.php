@@ -120,9 +120,9 @@ class UserServiceTest extends TestCase{
         $request->id = "andro";
         $request->password = "rahasia";
 
-        $this->userService->login($request);
+        $response = $this->userService->login($request);
 
-        $this->assertEquals($request->id, $user->id);
+        $this->assertEquals($request->id, $response->user->id);
         $this->assertTrue(password_verify($request->password, $user->password));
     }
 

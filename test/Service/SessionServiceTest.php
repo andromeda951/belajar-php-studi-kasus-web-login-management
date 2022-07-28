@@ -2,16 +2,14 @@
  
 namespace Andromeda\Belajar\PHP\MVC\Service;
 
+require_once __DIR__ . "/../Helper/helper.php";
+
 use Andromeda\Belajar\PHP\MVC\Config\Database;
 use Andromeda\Belajar\PHP\MVC\Domain\Session;
 use Andromeda\Belajar\PHP\MVC\Domain\User;
 use Andromeda\Belajar\PHP\MVC\Repository\SessionRepository;
 use Andromeda\Belajar\PHP\MVC\Repository\UserRepository;
 use PHPUnit\Framework\TestCase;
-
-function setcookie(string $name, string $value): void {
-    echo "$name: $value";
-}
 
 class SessionServiceTest extends TestCase{
 

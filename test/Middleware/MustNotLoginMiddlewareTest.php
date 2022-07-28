@@ -1,14 +1,8 @@
 <?php 
 
-namespace Andromeda\Belajar\PHP\MVC\App{
-
-    function header(string $value) {
-        echo $value;
-    }
-}
-
-
 namespace Andromeda\Belajar\PHP\MVC\Middleware {
+
+    require_once __DIR__ . "/../Helper/helper.php";
 
     use Andromeda\Belajar\PHP\MVC\Config\Database;
     use Andromeda\Belajar\PHP\MVC\Domain\Session;
