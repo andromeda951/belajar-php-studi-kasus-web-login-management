@@ -22,6 +22,7 @@ namespace Andromeda\Belajar\PHP\MVC\Controller{
     use Andromeda\Belajar\PHP\MVC\Exception\ValidationException;
     use Andromeda\Belajar\PHP\MVC\Repository\SessionRepository;
     use Andromeda\Belajar\PHP\MVC\Repository\UserRepository;
+    use Andromeda\Belajar\PHP\MVC\Service\SessionService;
     use PHPUnit\Framework\TestCase;
 
     class UserControllerTest extends TestCase{
@@ -189,13 +190,94 @@ namespace Andromeda\Belajar\PHP\MVC\Controller{
 
             $session = new Session();
             $session->id = uniqid();
+            $temp = $session->id;
             $session->userId = $user->id;
             $this->sessionRepository->save($session);
+
+            $_COOKIE[SessionService::$COOKIE_NAME] = $session->id;
 
             $this->userController->logout();
 
             $this->expectOutputRegex("[Location: /]");
             $this->expectOutputRegex("[X-PZN-SESSION]");
+
+            // tambahan
+            $result = $this->sessionRepository->findById($temp);
+            $this->assertNull($result);
+        }
+
+        public function testUpdateProfile()
+        {
+            $user = new User();
+            $user->id = "andro";
+            $user->name = "Andro";
+            $user->password = password_hash("rahasia", PASSWORD_BCRYPT);
+            $this->userRepository->save($user);
+
+            $session = new Session();
+            $session->id = uniqid();
+            $session->userId = $user->id;
+            $this->sessionRepository->save($session);
+            
+            $_COOKIE[SessionService::$COOKIE_NAME] = $session->id;
+
+            $this->userController->updateProfile();
+
+            $this->expectOutputRegex("[Profile]");
+            $this->expectOutputRegex("[Id]");
+            $this->expectOutputRegex("[andro]");
+            $this->expectOutputRegex("[Name]");
+            $this->expectOutputRegex("[Andro]");
+        }
+
+        public function testPostUpdateProfileSuccess()
+        {
+            $user = new User();
+            $user->id = "andro";
+            $user->name = "Andro";
+            $user->password = password_hash("rahasia", PASSWORD_BCRYPT);
+            $this->userRepository->save($user);
+
+            $session = new Session();
+            $session->id = uniqid();
+            $session->userId = $user->id;
+            $this->sessionRepository->save($session);
+            
+            $_COOKIE[SessionService::$COOKIE_NAME] = $session->id;
+
+            $_POST['name'] = "Budi";
+            $this->userController->postUpdateProfile();
+
+            $this->expectOutputRegex("[Location: /]");
+
+            $result = $this->userRepository->findById("andro");
+            $this->assertEquals("Budi", $result->name);
+        }
+
+        public function testPostUpdateProfileValidationError()
+        {
+            $user = new User();
+            $user->id = "andro";
+            $user->name = "Andro";
+            $user->password = password_hash("rahasia", PASSWORD_BCRYPT);
+            $this->userRepository->save($user);
+
+            $session = new Session();
+            $session->id = uniqid();
+            $session->userId = $user->id;
+            $this->sessionRepository->save($session);
+            
+            $_COOKIE[SessionService::$COOKIE_NAME] = $session->id;
+
+            $_POST['name'] = "";
+            $this->userController->postUpdateProfile();
+
+            $this->expectOutputRegex("[Profile]");
+            $this->expectOutputRegex("[Id]");
+            $this->expectOutputRegex("[andro]");
+            $this->expectOutputRegex("[Name]");
+            $this->expectOutputRegex("[Andro]");
+            $this->expectOutputRegex("[Id, name can not blank]");
         }
     }
 }

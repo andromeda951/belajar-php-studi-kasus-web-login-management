@@ -8,6 +8,7 @@ use Andromeda\Belajar\PHP\MVC\Model\UserRegisterRequest;
 use Andromeda\Belajar\PHP\MVC\Service\UserService;
 use Andromeda\Belajar\PHP\MVC\Exception\ValidationException;
 use Andromeda\Belajar\PHP\MVC\Model\UserLoginRequest;
+use Andromeda\Belajar\PHP\MVC\Model\UserProfileUpdateRequest;
 use Andromeda\Belajar\PHP\MVC\Repository\SessionRepository;
 use Andromeda\Belajar\PHP\MVC\Repository\UserRepository;
 use Andromeda\Belajar\PHP\MVC\Service\SessionService;
@@ -82,5 +83,43 @@ class UserController{
         $this->sessionService->destroy();
         View::redirect("/");
     }
+
+    public function updateProfile()
+    {   
+        $user = $this->sessionService->current();
+
+        View::render("User/profile", [
+            "title" => "Update user profile",
+            "user" => [
+                "id" => $user->id,
+                "name" => $user->name
+            ]
+        ]);
+    }
+
+    public function postUpdateProfile()
+    {
+        $user = $this->sessionService->current();
+
+        $request = new UserProfileUpdateRequest();
+        $request->id = $user->id;                          // $_POST['id'];
+        $request->name = $_POST['name'];
+
+        try {
+            $this->userService->updateProfile($request);
+            View::redirect("/");
+        } catch(ValidationException $exception) {
+
+            View::render("User/profile", [
+                "title" => "Update user profile",
+                "error" => $exception->getMessage(),
+                "user" => [
+                    "id" => $user->id,
+                    "name" => $_POST['name']
+                ]
+            ]);
+        }
+    }
+
 }
 
