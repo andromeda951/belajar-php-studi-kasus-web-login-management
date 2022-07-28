@@ -2,7 +2,6 @@
 
 namespace Andromeda\Belajar\PHP\MVC\Service;
 
-use Andromeda\Belajar\PHP\MVC\App\View;
 use Andromeda\Belajar\PHP\MVC\Config\Database;
 use Andromeda\Belajar\PHP\MVC\Domain\User;
 use Andromeda\Belajar\PHP\MVC\Exception\ValidationException;
@@ -10,6 +9,8 @@ use Andromeda\Belajar\PHP\MVC\Model\UserRegisterRequest;
 use Andromeda\Belajar\PHP\MVC\Model\UserRegisterResponse;
 use Andromeda\Belajar\PHP\MVC\Model\UserLoginRequest;
 use Andromeda\Belajar\PHP\MVC\Model\UserLoginResponse;
+use Andromeda\Belajar\PHP\MVC\Model\UserProfileUpdateRequest;
+use Andromeda\Belajar\PHP\MVC\Model\UserProfileUpdateResponse;
 use Andromeda\Belajar\PHP\MVC\Repository\UserRepository;
 
 class UserService
@@ -82,6 +83,42 @@ class UserService
             trim($request->id) == "" || trim($request->password) == "") {
             throw new ValidationException("Id, Password can not blank");
         }
+    }
+
+    public function updateProfile(UserProfileUpdateRequest $request): UserProfileUpdateResponse
+    {
+
+        $this->validateUserProfileUpdate($request);
+
+        try {
+            Database::beginTransaction();
+
+            $user = $this->userRepository->findById($request->id);
+            if ($user == null) {
+                throw new ValidationException("User is not found");
+            }
+
+            $user->name = $request->name;
+            $this->userRepository->update($user);
+
+            Database::commitTransaction();
+
+            $response = new UserProfileUpdateResponse();
+            $response->user = $user;
+            return $response;
+
+        } catch (\Exception $exception) {
+            Database::rollbackTransaction();    
+            throw $exception;
+        }        
+    }
+
+    private function validateUserProfileUpdate(UserProfileUpdateRequest $request)
+    {
+        if ($request->id == null || $request->name == null || 
+        trim($request->id) == "" || trim($request->name) == "") {
+            throw new ValidationException("Id, name can not blank");
+        }   
     }
 } 
 
