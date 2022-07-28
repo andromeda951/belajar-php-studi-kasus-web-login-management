@@ -279,6 +279,103 @@ namespace Andromeda\Belajar\PHP\MVC\Controller{
             $this->expectOutputRegex("[Andro]");
             $this->expectOutputRegex("[Id, name can not blank]");
         }
+
+        public function testUpdatePassword()
+        {
+            $user = new User();
+            $user->id = "andro";
+            $user->name = "Andro";
+            $user->password = password_hash("rahasia", PASSWORD_BCRYPT);
+            $this->userRepository->save($user);
+
+            $session = new Session();
+            $session->id = uniqid();
+            $session->userId = $user->id;
+            $this->sessionRepository->save($session);
+            
+            $_COOKIE[SessionService::$COOKIE_NAME] = $session->id;
+
+            $this->userController->updatePassword();
+
+            $this->expectOutputRegex("[Password]");
+            $this->expectOutputRegex("[Id]");
+            $this->expectOutputRegex("[andro]");   
+        }
+
+        public function testPostUpdatePasswordSuccess()
+        {
+            $user = new User();
+            $user->id = "andro";
+            $user->name = "Andro";
+            $user->password = password_hash("rahasia", PASSWORD_BCRYPT);
+            $this->userRepository->save($user);
+
+            $session = new Session();
+            $session->id = uniqid();
+            $session->userId = $user->id;
+            $this->sessionRepository->save($session);
+            
+            $_COOKIE[SessionService::$COOKIE_NAME] = $session->id;
+
+            $_POST['oldPassword'] = "rahasia";
+            $_POST['newPassword'] = "new";
+            $this->userController->postUpdatePassword();
+
+            $this->expectOutputRegex("[Location: /]");
+
+            $result = $this->userRepository->findById($user->id);
+            $this->assertTrue(password_verify("new", $result->password));
+        }
+
+        public function testUpdatePasswordValidateError()
+        {
+            $user = new User();
+            $user->id = "andro";
+            $user->name = "Andro";
+            $user->password = password_hash("rahasia", PASSWORD_BCRYPT);
+            $this->userRepository->save($user);
+
+            $session = new Session();
+            $session->id = uniqid();
+            $session->userId = $user->id;
+            $this->sessionRepository->save($session);
+            
+            $_COOKIE[SessionService::$COOKIE_NAME] = $session->id;
+
+            $_POST['oldPassword'] = "rahasia";
+            $_POST['newPassword'] = "";
+            $this->userController->postUpdatePassword();
+
+            $this->expectOutputRegex("[Password]");
+            $this->expectOutputRegex("[Id]");
+            $this->expectOutputRegex("[andro]");   
+            $this->expectOutputRegex("[Id, Old Password, New Password can not blank]");
+        }
+
+        public function testUpdatePasswordWrongOldPassword()
+        {
+            $user = new User();
+            $user->id = "andro";
+            $user->name = "Andro";
+            $user->password = password_hash("rahasia", PASSWORD_BCRYPT);
+            $this->userRepository->save($user);
+
+            $session = new Session();
+            $session->id = uniqid();
+            $session->userId = $user->id;
+            $this->sessionRepository->save($session);
+            
+            $_COOKIE[SessionService::$COOKIE_NAME] = $session->id;
+
+            $_POST['oldPassword'] = "salah";
+            $_POST['newPassword'] = "new";
+            $this->userController->postUpdatePassword();
+
+            $this->expectOutputRegex("[Password]");
+            $this->expectOutputRegex("[Id]");
+            $this->expectOutputRegex("[andro]");   
+            $this->expectOutputRegex("[Password is wrong]");
+        }        
     }
 }
 

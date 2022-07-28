@@ -8,6 +8,7 @@ use Andromeda\Belajar\PHP\MVC\Model\UserRegisterRequest;
 use Andromeda\Belajar\PHP\MVC\Service\UserService;
 use Andromeda\Belajar\PHP\MVC\Exception\ValidationException;
 use Andromeda\Belajar\PHP\MVC\Model\UserLoginRequest;
+use Andromeda\Belajar\PHP\MVC\Model\UserPasswordUpdateRequest;
 use Andromeda\Belajar\PHP\MVC\Model\UserProfileUpdateRequest;
 use Andromeda\Belajar\PHP\MVC\Repository\SessionRepository;
 use Andromeda\Belajar\PHP\MVC\Repository\UserRepository;
@@ -116,6 +117,45 @@ class UserController{
                 "user" => [
                     "id" => $user->id,
                     "name" => $_POST['name']
+                ]
+            ]);
+        }
+    }
+
+    public function updatePassword()
+    {
+        $user = $this->sessionService->current();
+
+        password_get_info($user->password);
+
+        View::render("User/password", [
+            "title" => " User update password",
+            "user" => [
+                "id" => $user->id,
+                // "oldPassword" => $user->password
+            ]
+        ]);
+    }
+
+    public function postUpdatePassword()
+    {
+        $user = $this->sessionService->current();
+
+        $request = new UserPasswordUpdateRequest();
+        $request->id = $user->id;
+        $request->oldPassword = $_POST['oldPassword'];
+        $request->newPassword = $_POST['newPassword'];
+
+        try {
+
+            $this->userService->updatePassword($request);
+            View::redirect("/");
+        } catch (ValidationException $exception) {
+            View::render("User/password", [
+                "title" => " User update password",
+                "error" => $exception->getMessage(),
+                "user" => [
+                    "id" => $user->id
                 ]
             ]);
         }
