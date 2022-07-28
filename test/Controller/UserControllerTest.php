@@ -178,6 +178,25 @@ namespace Andromeda\Belajar\PHP\MVC\Controller{
             $this->expectOutputRegex("[Password]");
             $this->expectOutputRegex("[Id or password is wrong]");
         }
+
+        public function testLogout()
+        {
+            $user = new User();
+            $user->id = "andro";
+            $user->name = "Andro";
+            $user->password = password_hash("rahasia", PASSWORD_BCRYPT);
+            $this->userRepository->save($user);
+
+            $session = new Session();
+            $session->id = uniqid();
+            $session->userId = $user->id;
+            $this->sessionRepository->save($session);
+
+            $this->userController->logout();
+
+            $this->expectOutputRegex("[Location: /]");
+            $this->expectOutputRegex("[X-PZN-SESSION]");
+        }
     }
 }
 
