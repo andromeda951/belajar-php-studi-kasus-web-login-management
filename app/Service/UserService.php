@@ -9,6 +9,8 @@ use Andromeda\Belajar\PHP\MVC\Model\UserRegisterRequest;
 use Andromeda\Belajar\PHP\MVC\Model\UserRegisterResponse;
 use Andromeda\Belajar\PHP\MVC\Model\UserLoginRequest;
 use Andromeda\Belajar\PHP\MVC\Model\UserLoginResponse;
+use Andromeda\Belajar\PHP\MVC\Model\UserPasswordUpdateRequest;
+use Andromeda\Belajar\PHP\MVC\Model\UserPasswordUpdateResponse;
 use Andromeda\Belajar\PHP\MVC\Model\UserProfileUpdateRequest;
 use Andromeda\Belajar\PHP\MVC\Model\UserProfileUpdateResponse;
 use Andromeda\Belajar\PHP\MVC\Repository\UserRepository;
@@ -119,6 +121,44 @@ class UserService
         trim($request->id) == "" || trim($request->name) == "") {
             throw new ValidationException("Id, name can not blank");
         }   
+    }
+
+    public function updatePassword(UserPasswordUpdateRequest $request): UserPasswordUpdateResponse
+    {
+        $this->validateUserPasswordUpdate($request);
+
+        try {
+            Database::beginTransaction();
+
+            $user = $this->userRepository->findById($request->id);
+            if($user == null) {
+                throw new ValidationException("User is not found");
+            }
+
+            if (!password_verify($request->oldPassword, $user->password)) {
+                throw new ValidationException("Password is wrong");
+            }
+
+            $user->password = password_hash($request->newPassword, PASSWORD_BCRYPT);
+            $this->userRepository->update($user);
+
+            Database::commitTransaction();
+
+            $response = new UserPasswordUpdateResponse();
+            $response->user = $user;
+            return $response;
+        } catch(\Exception $exception) {
+            Database::rollbackTransaction();
+            throw $exception;
+        }
+    }
+
+    public function validateUserPasswordUpdate(UserPasswordUpdateRequest $request)
+    {
+        if ($request->id == null || $request->oldPassword == null || $request->newPassword == null || 
+            trim($request->id) == "" || trim($request->oldPassword) == "" || trim($request->newPassword) == "") {
+            throw new ValidationException("Id, Old Password, New Password can not blank");
+        }
     }
 } 
 

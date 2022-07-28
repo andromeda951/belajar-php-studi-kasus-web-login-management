@@ -6,6 +6,8 @@ use Andromeda\Belajar\PHP\MVC\Config\Database;
 use Andromeda\Belajar\PHP\MVC\Domain\User;
 use Andromeda\Belajar\PHP\MVC\Exception\ValidationException;
 use Andromeda\Belajar\PHP\MVC\Model\UserLoginRequest;
+use Andromeda\Belajar\PHP\MVC\Model\UserPasswordUpdateRequest;
+use Andromeda\Belajar\PHP\MVC\Model\UserPasswordUpdateResponse;
 use Andromeda\Belajar\PHP\MVC\Model\UserProfileUpdateRequest;
 use Andromeda\Belajar\PHP\MVC\Model\UserRegisterRequest;
 use Andromeda\Belajar\PHP\MVC\Repository\SessionRepository;
@@ -160,5 +162,74 @@ class UserServiceTest extends TestCase{
 
         $result = $this->userService->updateProfile($request);
     }
+
+    public function testUpdatePasswordSuccess()
+    {
+        $user = new User();
+        $user->id = "andro";
+        $user->name = "Andro";
+        $user->password = password_hash("rahasia", PASSWORD_BCRYPT);
+        $this->userRepository->save($user);
+        
+        $request = new UserPasswordUpdateRequest();
+        $request->id = "andro";
+        $request->oldPassword = "rahasia";
+        $request->newPassword = "rahasiabaru";
+
+        $this->userService->updatePassword($request);
+        $result = $this->userRepository->findById($user->id);
+
+        $this->assertTrue(password_verify($request->newPassword, $result->password));
+    }
+
+    public function testUpdatePasswordValidateError() {
+        
+        $this->expectException(ValidationException::class);
+
+        $user = new User();
+        $user->id = "andro";
+        $user->name = "Andro";
+        $user->password = password_hash("rahasia", PASSWORD_BCRYPT);
+        $this->userRepository->save($user);
+        
+        $request = new UserPasswordUpdateRequest();
+        $request->id = "andro";
+        $request->oldPassword = "rahasia";
+        $request->newPassword = "";
+
+        $this->userService->updatePassword($request);
+    }
+    
+    public function testUpdatePasswordWrongOldPasword() {
+        
+        $this->expectException(ValidationException::class);
+
+        $user = new User();
+        $user->id = "andro";
+        $user->name = "Andro";
+        $user->password = password_hash("rahasia", PASSWORD_BCRYPT);
+        $this->userRepository->save($user);
+        
+        $request = new UserPasswordUpdateRequest();
+        $request->id = "andro";
+        $request->oldPassword = "wrongpassword";
+        $request->newPassword = "rahasiabaru";
+
+        $this->userService->updatePassword($request);        
+
+    }
+    
+    public function testUpdatePasswordNotFound() {
+
+        $this->expectException(ValidationException::class);
+        
+        $request = new UserPasswordUpdateRequest();
+        $request->id = "andro";
+        $request->oldPassword = "rahasia";
+        $request->newPassword = "rahasiabaru";
+
+        $this->userService->updatePassword($request); 
+    }
+
 }
 
